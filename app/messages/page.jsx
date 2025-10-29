@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import WebhookViewHistory from "../components/message-invoker";
+import SendMessageButton from "../components/send";
 
 export default function WebhookView() {
   const [messages, setMessages] = useState([]);
@@ -49,6 +50,7 @@ export default function WebhookView() {
                 ? new Date(parseInt(msg.timestamp) * 1000).toLocaleString()
                 : '[No timestamp]'}
             </small>
+            <SendMessageButton to={msg.from} onSent={() => {}} />
           </p>
         </div>
       ))}
