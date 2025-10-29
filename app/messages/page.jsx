@@ -9,15 +9,13 @@ export default function WebhookView() {
   useEffect(() => {
     async function fetchMessages() {
       try {
-        const res = await fetch("/api/webhook"); // GET request to your combined webhook route
+        const res = await fetch("/api/webhook");
         if (res.ok) {
           const data = await res.json();
           setMessages(data);
-        } else {
-          console.error("Failed to fetch messages");
         }
       } catch (error) {
-        console.error("An error occurred:", error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -25,8 +23,8 @@ export default function WebhookView() {
 
     fetchMessages();
 
-    // Optional: poll every 5 seconds for new messages
     const interval = setInterval(fetchMessages, 5000);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -34,25 +32,24 @@ export default function WebhookView() {
   if (!messages.length) return <p>No incoming messages yet.</p>;
 
   return (
-    
+    <div>
       {messages.map((msg, index) => (
-  <div
-    key={index}  // unique key required in React lists
-    style={{ border: "1px solid #ccc", marginBottom: "10px", padding: "10px" }}
-  >
-    <p><strong>From:</strong> {msg.from ?? '[Unknown sender]'}</p>
-    <p><strong>Text:</strong> {msg.text?.body ?? '[No text]'}</p>
-    <p>
-      <small>
-        <strong>Timestamp:</strong>{' '}
-        {msg.timestamp
-          ? new Date(parseInt(msg.timestamp) * 1000).toLocaleString()
-          : '[No timestamp]'}
-      </small>
-    </p>
-  </div>
-))}
-
-
+        <div
+          key={index}
+          style={{ border: "1px solid #ccc", marginBottom: "10px", padding: "10px" }}
+        >
+          <p><strong>From:</strong> {msg.from ?? '[Unknown sender]'}</p>
+          <p><strong>Text:</strong> {msg.text?.body ?? '[No text]'}</p>
+          <p>
+            <small>
+              <strong>Timestamp:</strong>{' '}
+              {msg.timestamp
+                ? new Date(parseInt(msg.timestamp) * 1000).toLocaleString()
+                : '[No timestamp]'}
+            </small>
+          </p>
+        </div>
+      ))}
+    </div>
   );
 }
