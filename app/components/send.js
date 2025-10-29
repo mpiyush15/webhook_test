@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+
 export default function SendMessageButton({ to, onSent }) {
   const [showInput, setShowInput] = useState(false);
   const [text, setText] = useState("");
@@ -29,6 +30,7 @@ export default function SendMessageButton({ to, onSent }) {
         const err = await res.text();
         setStatus("Failed to send: " + err);
       }
+      console.log("Response:", res);
     } catch (error) {
       setStatus("Error sending message");
     } finally {
