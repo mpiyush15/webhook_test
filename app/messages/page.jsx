@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import WebhookViewHistory from "../components/message-invoker";
 
 export default function WebhookView() {
   const [messages, setMessages] = useState([]);
@@ -33,6 +34,7 @@ export default function WebhookView() {
 
   return (
     <div>
+      <WebhookViewHistory />
       {messages.map((msg, index) => (
         <div
           key={index}
