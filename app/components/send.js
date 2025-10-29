@@ -54,7 +54,7 @@ export default function SendMessageButton({ to, onSent }) {
             disabled={sending}
           />
           <button onClick={sendMessage} disabled={sending || !text.trim()}>
-            {sending ? "Sending message..." : "Send"}
+            {sending ? "Sending message.." : "Send"}
           </button>
           <button onClick={() => setShowInput(false)} disabled={sending} style={{ marginLeft: "5px" }}>
             Cancel
