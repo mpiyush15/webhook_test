@@ -34,18 +34,25 @@ export default function WebhookView() {
   if (!messages.length) return <p>No incoming messages yet.</p>;
 
   return (
-    <div>
-      <h2>Incoming WhatsApp Messages</h2>
+    
       {messages.map((msg, index) => (
-        <div
-          key={index}
-          style={{ border: "1px solid #ccc", marginBottom: "10px", padding: "10px" }}
-        >
-          <p><strong>From:</strong> {msg.from}</p>
-          <p><strong>Text:</strong> {msg.text?.body || '[No text]'}</p>
-          <p><small><strong>Timestamp:</strong> {new Date(parseInt(msg.timestamp) * 1000).toLocaleString()}</small></p>
-        </div>
-      ))}
-    </div>
+  <div
+    key={index}  // unique key required in React lists
+    style={{ border: "1px solid #ccc", marginBottom: "10px", padding: "10px" }}
+  >
+    <p><strong>From:</strong> {msg.from ?? '[Unknown sender]'}</p>
+    <p><strong>Text:</strong> {msg.text?.body ?? '[No text]'}</p>
+    <p>
+      <small>
+        <strong>Timestamp:</strong>{' '}
+        {msg.timestamp
+          ? new Date(parseInt(msg.timestamp) * 1000).toLocaleString()
+          : '[No timestamp]'}
+      </small>
+    </p>
+  </div>
+))}
+
+
   );
 }
