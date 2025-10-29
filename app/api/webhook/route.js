@@ -1,88 +1,103 @@
-const WHATSAPP_TOKEN = process.env.WHATSAPP_API_TOKEN;
-const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+"use client";
 
-let messages = [];  // In-memory store for incoming + outgoing messages
+import { useEffect, useState } from "react";
 
-async function sendWhatsAppMessage(to, text) {
-  const url = `https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/messages`;
+export default function WebhookView() {
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [outgoingMsg, setOutgoingMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const [status, setStatus] = useState("");
 
-  const body = {
-    messaging_product: "whatsapp",
-    to,
-    text: { body: text }
-  };
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(body)
-  });
-
-  if (!res.ok) {
-    console.error("Failed to send message:", await res.text());
-    throw new Error("WhatsApp API send message failed");
-  }
-
-  return res.json();
-}
-
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const mode = searchParams.get('hub.mode');
-  const token = searchParams.get('hub.verify_token');
-  const challenge = searchParams.get('hub.challenge');
-
-  const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
-
-  // Meta webhook verification
-  if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-    console.log('Webhook verified');
-    return new Response(challenge, { status: 200 });
-  }
-
-  // Return stored messages to frontend
-  return new Response(JSON.stringify(messages), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
-
-export async function POST(request) {
-  const body = await request.json();
-  console.log('Received webhook event:', JSON.stringify(body, null, 2));
-
-  if (body.entry && Array.isArray(body.entry)) {
-    for (const entry of body.entry) {
-      if (entry.changes && Array.isArray(entry.changes)) {
-        for (const change of entry.changes) {
-          if (change.value && change.value.messages) {
-            for (const msg of change.value.messages) {
-              messages.push(msg); // Store incoming message
-
-              // Send reply
-              const from = msg.from;
-              const replyText = "Thanks for your message!";
-
-              try {
-                await sendWhatsAppMessage(from, replyText);
-                // Store outgoing reply message
-                messages.push({
-                  from: PHONE_NUMBER_ID,
-                  text: { body: replyText },
-                  timestamp: Math.floor(Date.now() / 1000).toString(),
-                });
-              } catch (error) {
-                console.error("Failed to send reply message:", error);
-              }
-            }
-          }
+  useEffect(() => {
+    async function fetchMessages() {
+      try {
+        const res = await fetch("/api/webhook");
+        if (res.ok) {
+          const data = await res.json();
+          setMessages(data);
         }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
       }
+    }
+
+    fetchMessages();
+
+    const interval = setInterval(fetchMessages, 5000); // Poll every 5s
+    return () => clearInterval(interval);
+  }, []);
+
+  // Get latest sender's phone number
+  const latestSender = messages.length ? messages[messages.length - 1].from : null;
+
+  async function handleSend() {
+    if (!outgoingMsg.trim() || !latestSender) return;
+    setSending(true);
+    setStatus("");
+
+    try {
+      const res = await fetch("/api/send-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: latestSender, text: outgoingMsg.trim() }),
+      });
+
+      if (res.ok) {
+        setStatus("Message sent!");
+        setOutgoingMsg("");
+      } else {
+        const errorText = await res.text();
+        setStatus("Failed to send: " + errorText);
+      }
+    } catch (error) {
+      setStatus("Error sending message");
+    } finally {
+      setSending(false);
     }
   }
 
-  return new Response('EVENT_RECEIVED', { status: 200 });
+  if (loading) return <p>Loading messages...</p>;
+  if (!messages.length) return <p>No incoming messages yet.</p>;
+
+  return (
+    <div>
+      <h2>Incoming WhatsApp Messages</h2>
+      {messages.map((msg, index) => (
+        <div
+          key={index}
+          style={{ border: "1px solid #ccc", marginBottom: "10px", padding: "10px" }}
+        >
+          <p><strong>From:</strong> {msg.from ?? '[Unknown sender]'}</p>
+          <p><strong>Text:</strong> {msg.text?.body ?? '[No text]'}</p>
+          <p>
+            <small>
+              <strong>Timestamp:</strong>{' '}
+              {msg.timestamp
+                ? new Date(parseInt(msg.timestamp) * 1000).toLocaleString()
+                : '[No timestamp]'}
+            </small>
+          </p>
+        </div>
+      ))}
+
+      <hr />
+
+      <h3>Send a Message</h3>
+      <textarea
+        rows={3}
+        value={outgoingMsg}
+        onChange={(e) => setOutgoingMsg(e.target.value)}
+        placeholder={latestSender ? `Send message to ${latestSender}` : 'No recipient available'}
+        disabled={!latestSender || sending}
+        style={{ width: "100%", marginBottom: "10px" }}
+      />
+      <button onClick={handleSend} disabled={!outgoingMsg.trim() || sending || !latestSender}>
+        {sending ? "Sending..." : "Send"}
+      </button>
+      <p>{status}</p>
+    </div>
+  );
 }
