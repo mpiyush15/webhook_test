@@ -7,6 +7,9 @@ export async function GET(request) {
   const challenge = searchParams.get('hub.challenge');
 
   const VERIFY_TOKEN = process.env.VERIFY_TOKEN; // Your secret verification token
+  console.log('Received token:', token);
+console.log('Expected token:', VERIFY_TOKEN);
+
 
   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
     console.log('Webhook verified');
