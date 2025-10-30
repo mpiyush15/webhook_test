@@ -19,7 +19,7 @@ export async function GET(request) {
     );
     
     const data = await response.json();
-    console.log('Fetched data:', data);
+    console.log('Fetched data is:', data);
     
     if (data.error) {
       return NextResponse.json(
@@ -36,4 +36,5 @@ export async function GET(request) {
       { status: 500 }
     );
   }
+
 }
