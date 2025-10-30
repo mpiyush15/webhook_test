@@ -29,6 +29,7 @@ export async function GET(request) {
 
     return NextResponse.json(data);
   } catch (error) {
+    console.log('Fetch error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch ads data' },
       { status: 500 }
