@@ -50,7 +50,7 @@ export default function AdsPage() {
 
       {/* Input Section */}
       <div style={{ 
-        background: '#f5f5f5', 
+        background: '', 
         padding: '20px', 
         borderRadius: '8px',
         marginBottom: '30px'
