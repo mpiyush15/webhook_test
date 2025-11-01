@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   description: "Privacy Policy for Pixels Digital platform",
 };
 
+
 export default function PrivacyPage() {
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
